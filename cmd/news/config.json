@@ -4,5 +4,13 @@
       "https://habr.com/ru/rss/best/daily/?fl=ru",
       "https://cprss.s3.amazonaws.com/golangweekly.com.xml"
    ],
-   "request_period": 5
+   "request_period": 5,
+   "postgres_settings":{
+      "username": "serj",
+      "host": "192.168.52.129",
+      "port": "5432",
+      "dbname": "gonews",
+      "sslmode": "require",
+      "envname": "DbPass"
+   }
 }

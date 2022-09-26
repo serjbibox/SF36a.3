@@ -23,7 +23,7 @@ func (s *PostMemdb) GetAll() ([]models.Post, error) {
 	return s.db, nil
 }
 
-// получение всех публикаций
+// Получение публикаций по заданному количеству
 func (s *PostMemdb) GetByQuantity(n int) ([]models.Post, error) {
 	if n >= len(s.db) {
 		return s.db, nil
@@ -37,11 +37,8 @@ func (s *PostMemdb) GetByQuantity(n int) ([]models.Post, error) {
 }
 
 // создание новой публикации
-func (s *PostMemdb) Create(p models.Post) (int, error) {
-	id := s.db[len(s.db)-1].ID
-	p.ID = id + 1
-	s.db = append(s.db, p)
-	return s.db[len(s.db)-1].ID, nil
+func (s *PostMemdb) Create(p []models.Post) error {
+	return nil
 }
 
 // обновление публикации
