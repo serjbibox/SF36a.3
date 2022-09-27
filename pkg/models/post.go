@@ -8,3 +8,11 @@ type Post struct {
 	PubTime int64  // время публикации
 	Link    string // ссылка на источник
 }
+
+// Хэш RSS.
+type Hash struct {
+	ID       int
+	NewsHash string
+	PubTime  int64
+	Link     string
+}

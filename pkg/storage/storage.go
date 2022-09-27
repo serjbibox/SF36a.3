@@ -14,6 +14,14 @@ import (
 var elog = log.New(os.Stderr, "Storage error\t", log.Ldate|log.Ltime|log.Lshortfile)
 var ilog = log.New(os.Stdout, "Storage info\t", log.Ldate|log.Ltime)
 
+//задаёт контракт на работу с таблицей хэшей БД.
+type Hash interface {
+	GetByLink(string) (string, error) // получение хэша по url
+	Create(models.Hash) error         // создание новой публикации
+	Update(models.Hash) error         // обновление публикации
+	Delete(id int) error              // удаление публикации по ID
+}
+
 //задаёт контракт на работу с таблицей публикаций БД.
 type Post interface {
 	GetAll() ([]models.Post, error)             // получение всех публикаций
@@ -26,6 +34,7 @@ type Post interface {
 // Хранилище данных.
 type Storage struct {
 	Post
+	Hash
 }
 
 // Конструктор объекта хранилища для БД PostgreSQL.
@@ -40,6 +49,7 @@ func NewStoragePostgres(ctx context.Context, db *pgxpool.Pool) (*Storage, error)
 	}
 	return &Storage{
 		Post: newPostPostgres(ctx, db),
+		Hash: newHashPostgres(ctx, db),
 	}, nil
 }
 

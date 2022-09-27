@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/serjbibox/SF36a.3/pkg/models"
@@ -100,11 +101,14 @@ func (s *PostPostgres) Create(p []models.Post) error {
 			post.PubTime,
 			post.Link,
 		)
-		if err != nil {
+		if err != nil && !strings.Contains(err.Error(), "SQLSTATE 23505") {
+			log.Println("Create() error:", err)
 			return err
 		}
+		if err != nil && strings.Contains(err.Error(), "SQLSTATE 23505") {
+			log.Println("Create() error:", err)
+		}
 	}
-	log.Println("stored")
 	return nil
 }
 

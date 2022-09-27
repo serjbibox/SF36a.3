@@ -10,6 +10,7 @@ import (
 
 	"github.com/serjbibox/SF36a.3/cmd/rss"
 	"github.com/serjbibox/SF36a.3/pkg/handler"
+	"github.com/serjbibox/SF36a.3/pkg/models"
 	"github.com/serjbibox/SF36a.3/pkg/storage"
 	"github.com/serjbibox/SF36a.3/pkg/storage/postgresql"
 )
@@ -48,7 +49,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	connString, err := postgresql.GetConnectionString(c.PostgresConfig)
 	if err != nil {
 		log.Fatal(err)
@@ -61,18 +61,32 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	rss, err := rss.New(s)
-	if err != nil {
-		log.Fatal(err)
+
+	news := make(chan []models.Post)
+	errs := make(chan error)
+	var rssArray []*rss.Rss
+	for idx, url := range c.Resurses {
+		r, err := rss.New(s, url)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rssArray = append(rssArray, r)
+		go rssArray[idx].ParseRss(c.Period, news, errs)
 	}
-	news, err := rss.Parse(c.Resurses[0])
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = rss.Store(news)
-	if err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		for n := range news {
+			err := s.Post.Create(n)
+			if err != nil {
+				log.Println("s.Post.Create() error:", err)
+			}
+		}
+	}()
+
+	go func() {
+		for err := range errs {
+			log.Println("ParseRss() error:", err)
+		}
+	}()
 	handlers, err := handler.New(s)
 	if err != nil {
 		log.Fatal(err)

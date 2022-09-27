@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"log"
 	"strings"
 	"time"
 
@@ -18,7 +16,9 @@ import (
 // Обработчик RSS запросов сервера GoNews
 type Rss struct {
 	Channel Channel `xml:"channel"`
-	storage *storage.Storage
+	Storage *storage.Storage
+	Link    string
+	Hash    models.Hash
 }
 
 type Item struct {
@@ -36,45 +36,68 @@ type Channel struct {
 }
 
 //Конструктор объекта RSS
-func New(s *storage.Storage) (*Rss, error) {
+func New(s *storage.Storage, link string) (*Rss, error) {
 	if s == nil {
 		return nil, errors.New("storage is nil")
 	}
-	return &Rss{storage: s}, nil
+
+	return &Rss{
+		Storage: s,
+		Link:    link,
+		Hash: models.Hash{
+			Link: link,
+		},
+	}, nil
 }
 
-func (r *Rss) Store(news []models.Post) error {
-	err := r.storage.Create(news)
-	if err != nil && !strings.Contains(err.Error(), "SQLSTATE 23505") {
-		return err
+func (r *Rss) ParseRss(period int, news chan<- []models.Post, errs chan<- error) {
+	for {
+		posts, err := r.Parse()
+		if err != nil {
+			errs <- err
+			continue
+		}
+		news <- posts
+		time.Sleep(time.Duration(period) * time.Second)
 	}
-	return nil
 }
 
 // Parse читает rss-поток и возвращет
 // массив раскодированных новостей.
 //"https://habr.com/ru/rss/hub/go/all/?fl=ru"
-func (r *Rss) Parse(url string) ([]models.Post, error) {
-	response, err := http.Get(url)
+func (r *Rss) Parse() ([]models.Post, error) {
+	XMLdata, err := readRssBody(r.Link)
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
-
-	XMLdata, err := ioutil.ReadAll(response.Body)
+	ok, err := r.isHashEqual(XMLdata)
 	if err != nil {
-		return nil, err
-	}
+		if strings.Contains(err.Error(), "no rows") {
+			err := r.HashInit(XMLdata)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
 
+	}
+	log.Println("Parse hash check", ok, "url:", r.Link)
+	if ok {
+		return nil, err
+	} else {
+		err := r.hashUpdate()
+		if err != nil {
+			return nil, err
+		}
+		log.Println("Hash updated", r.Link)
+	}
 	buffer := bytes.NewBuffer(XMLdata)
 	decoded := xml.NewDecoder(buffer)
 	err = decoded.Decode(r)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Title : %s\n", r.Channel.Title)
-	fmt.Printf("Description : %s\n", r.Channel.Description)
-	fmt.Printf("Link : %s\n", r.Channel.Link)
 	var data []models.Post
 	for _, item := range r.Channel.Items {
 		var p models.Post
@@ -90,26 +113,21 @@ func (r *Rss) Parse(url string) ([]models.Post, error) {
 		if err == nil {
 			p.PubTime = t.Unix()
 		}
+		//log.Println(p)
 		data = append(data, p)
-		//fmt.Printf("[%d] item title : %s\n", i, item.Title)
-		//fmt.Printf("[%d] item description : %s\n", i, strip.StripTags(item.Description))
-		//fmt.Printf("[%d] item link : %s\n\n", i, item.Link)
-		//fmt.Printf("[%d] item pubDate : %s\n\n", i, item.PubDate)
 	}
 	return data, nil
-	/*
-		fmt.Printf("Title : %s\n", rss.Channel.Title)
-		fmt.Printf("Description : %s\n", rss.Channel.Description)
-		fmt.Printf("Link : %s\n", rss.Channel.Link)
+}
 
-		total := len(rss.Channel.Items)
-
-		fmt.Printf("Total items : %v\n", total)
-
-		for i := 0; i < total; i++ {
-			fmt.Printf("[%d] item title : %s\n", i, rss.Channel.Items[i].Title)
-			fmt.Printf("[%d] item description : %s\n", i, rss.Channel.Items[i].Description)
-			fmt.Printf("[%d] item link : %s\n\n", i, rss.Channel.Items[i].Link)
-		}
-	*/
+func (r *Rss) HashInit(data []byte) error {
+	var err error
+	r.Hash.NewsHash, err = getMd5Hash(data)
+	if err != nil {
+		return errors.New("HashInit().getMd5Hash error: " + err.Error())
+	}
+	err = r.Storage.Hash.Create(r.Hash)
+	if err != nil && !strings.Contains(err.Error(), "SQLSTATE 23505") {
+		return errors.New("HashInit().Create error: " + err.Error())
+	}
+	return nil
 }
