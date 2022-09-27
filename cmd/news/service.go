@@ -5,35 +5,14 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"net/http"
-	"time"
 
-	"github.com/serjbibox/SF36a.3/cmd/rss"
 	"github.com/serjbibox/SF36a.3/pkg/handler"
 	"github.com/serjbibox/SF36a.3/pkg/models"
+	"github.com/serjbibox/SF36a.3/pkg/rss"
+	"github.com/serjbibox/SF36a.3/pkg/server"
 	"github.com/serjbibox/SF36a.3/pkg/storage"
 	"github.com/serjbibox/SF36a.3/pkg/storage/postgresql"
 )
-
-const (
-	HTTP_PORT = "8080"
-)
-
-type Server struct {
-	httpServer *http.Server
-}
-
-func (s *Server) Run(port string, handler http.Handler) error {
-	s.httpServer = &http.Server{
-		Addr:           ":" + port,
-		Handler:        handler,
-		MaxHeaderBytes: 1 << 20, // 1 MB
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-	}
-
-	return s.httpServer.ListenAndServe()
-}
 
 // Конфигурация приложения
 type config struct {
@@ -61,40 +40,49 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	news := make(chan []models.Post)
-	errs := make(chan error)
-	var rssArray []*rss.Rss
-	for idx, url := range c.Resurses {
-		r, err := rss.New(s, url)
-		if err != nil {
-			log.Fatal(err)
-		}
-		rssArray = append(rssArray, r)
-		go rssArray[idx].ParseRss(c.Period, news, errs)
-	}
-	go func() {
-		for n := range news {
-			err := s.Post.Create(n)
-			if err != nil {
-				log.Println("s.Post.Create() error:", err)
-			}
-		}
-	}()
-
-	go func() {
-		for err := range errs {
-			log.Println("ParseRss() error:", err)
-		}
-	}()
+	news, errs := parseRss(c, s)
+	go storeNews(news, s)
+	go errHandler(errs)
 	handlers, err := handler.New(s)
 	if err != nil {
 		log.Fatal(err)
 	}
-	srv := new(Server)
-	log.Fatal(srv.Run(HTTP_PORT, handlers.InitRoutes()))
+	srv := new(server.Server)
+	log.Fatal(srv.Run(server.HTTP_PORT, handlers.InitRoutes()))
 }
 
+//Сохраняет полученные публикации из канала в БД
+func storeNews(news <-chan []models.Post, s *storage.Storage) {
+	for n := range news {
+		err := s.Post.Create(n)
+		if err != nil {
+			log.Println("s.Post.Create() error:", err)
+		}
+	}
+}
+
+//Обработчик ошибок
+func errHandler(errs <-chan error) {
+	for err := range errs {
+		log.Println("ParseRss() error:", err)
+	}
+}
+
+//Чтение публикаций из RSS рассылок в отдельных потоках для каждого ресурса
+func parseRss(c *config, s *storage.Storage) (<-chan []models.Post, <-chan error) {
+	news := make(chan []models.Post)
+	errs := make(chan error)
+	for _, url := range c.Resurses {
+		r, err := rss.New(s, url)
+		if err != nil {
+			log.Fatal(err)
+		}
+		go r.ParseRss(c.Period, news, errs)
+	}
+	return news, errs
+}
+
+//Чтение JSON файла конфигурации
 func readConfig(path string) (*config, error) {
 	c, err := ioutil.ReadFile(path)
 	if err != nil {

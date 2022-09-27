@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -57,40 +56,7 @@ func (s *PostPostgres) GetByQuantity(n int) ([]models.Post, error) {
 	return news, rows.Err()
 }
 
-// получение всех публикаций
-func (s *PostPostgres) GetAll() ([]models.Post, error) {
-	query := `
-	SELECT 
-		news.id, 
-		news.title, 
-		news.content, 
-		news.pub_time,
-		news.link
-	FROM news
-	ORDER BY pub_time DESC`
-	rows, err := s.db.Query(s.ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	var news []models.Post
-	for rows.Next() {
-		var p models.Post
-		err = rows.Scan(
-			&p.ID,
-			&p.Title,
-			&p.Content,
-			&p.PubTime,
-			&p.Link,
-		)
-		if err != nil {
-			return nil, err
-		}
-		news = append(news, p)
-	}
-	return news, rows.Err()
-}
-
-// создание новой публикации
+// Создание нового списка публикаций
 func (s *PostPostgres) Create(p []models.Post) error {
 	for _, post := range p {
 		_, err := s.db.Exec(context.Background(), `
@@ -102,22 +68,8 @@ func (s *PostPostgres) Create(p []models.Post) error {
 			post.Link,
 		)
 		if err != nil && !strings.Contains(err.Error(), "SQLSTATE 23505") {
-			log.Println("Create() error:", err)
 			return err
 		}
-		if err != nil && strings.Contains(err.Error(), "SQLSTATE 23505") {
-			log.Println("Create() error:", err)
-		}
 	}
-	return nil
-}
-
-// обновление публикации
-func (s *PostPostgres) Update(p models.Post) error {
-	return nil
-}
-
-// удаление публикации по ID
-func (s *PostPostgres) Delete(id string) error {
 	return nil
 }

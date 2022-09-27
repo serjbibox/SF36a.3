@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"log"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -15,7 +14,7 @@ type HashPostgres struct {
 	ctx context.Context
 }
 
-//Конструктор PostPostgres
+//Конструктор HashPostgres
 func newHashPostgres(ctx context.Context, db *pgxpool.Pool) Hash {
 	return &HashPostgres{
 		db:  db,
@@ -23,6 +22,7 @@ func newHashPostgres(ctx context.Context, db *pgxpool.Pool) Hash {
 	}
 }
 
+//Функция запроса хэша записи из БД
 func (s *HashPostgres) GetByLink(l string) (string, error) {
 	hash := ""
 	query := `
@@ -37,6 +37,7 @@ func (s *HashPostgres) GetByLink(l string) (string, error) {
 	return hash, nil
 }
 
+//Функция создания записи хэша
 func (s *HashPostgres) Create(h models.Hash) error {
 	_, err := s.db.Exec(context.Background(), `
 		INSERT INTO news_hash(link, news_hash, pub_time)
@@ -52,6 +53,7 @@ func (s *HashPostgres) Create(h models.Hash) error {
 	return nil
 }
 
+//Функция обновления записи хэша
 func (s *HashPostgres) Update(h models.Hash) error {
 	id := 0
 	query := `
@@ -64,24 +66,6 @@ func (s *HashPostgres) Update(h models.Hash) error {
 	err := s.db.QueryRow(s.ctx, query, h.NewsHash, h.PubTime, h.Link).Scan(&id)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func (s *HashPostgres) Delete(id int) error {
-	res, err := s.db.Exec(s.ctx, `
-	DELETE FROM news_hash 
-	WHERE id = $1	
-	`,
-		id,
-	)
-	if err != nil {
-		return err
-	}
-	if res.Delete() {
-		if res.String() == "DELETE 0" {
-			return errors.New("no news_hash to delete")
-		}
 	}
 	return nil
 }

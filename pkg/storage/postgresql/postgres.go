@@ -20,6 +20,7 @@ const (
 var elog = log.New(os.Stderr, "postgresql error\t", log.Ldate|log.Ltime|log.Lshortfile)
 var ilog = log.New(os.Stdout, "postgresql info\t", log.Ldate|log.Ltime)
 
+//Структура дял хранения конфигурации PostgresSQL
 type PostgresConfig struct {
 	Username string `json:"username"`
 	Host     string `json:"host"`
@@ -29,6 +30,7 @@ type PostgresConfig struct {
 	EnvName  string `json:"envname"`
 }
 
+//Формирует строку подключения к PostgresSQL
 func GetConnectionString(c PostgresConfig) (string, error) {
 	pwd := os.Getenv(c.EnvName)
 	if pwd == "" {

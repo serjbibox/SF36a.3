@@ -32,6 +32,7 @@ type Channel struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
 	Description string `xml:"description"`
+	PubDate     string `xml:"pubDate"`
 	Items       []Item `xml:"item"`
 }
 
@@ -50,22 +51,23 @@ func New(s *storage.Storage, link string) (*Rss, error) {
 	}, nil
 }
 
+//Чтение источника и запись в канал
 func (r *Rss) ParseRss(period int, news chan<- []models.Post, errs chan<- error) {
 	for {
-		posts, err := r.Parse()
-		if err != nil {
+		posts, err := r.parse()
+		switch {
+		case err != nil:
 			errs <- err
-			continue
+		default:
+			news <- posts
 		}
-		news <- posts
 		time.Sleep(time.Duration(period) * time.Second)
 	}
 }
 
-// Parse читает rss-поток и возвращет
-// массив раскодированных новостей.
-//"https://habr.com/ru/rss/hub/go/all/?fl=ru"
-func (r *Rss) Parse() ([]models.Post, error) {
+// Parse читает rss-поток; возвращет
+// массив раскодированных новостей и ошибку.
+func (r *Rss) parse() ([]models.Post, error) {
 	XMLdata, err := readRssBody(r.Link)
 	if err != nil {
 		return nil, err
@@ -73,7 +75,7 @@ func (r *Rss) Parse() ([]models.Post, error) {
 	ok, err := r.isHashEqual(XMLdata)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows") {
-			err := r.HashInit(XMLdata)
+			err := r.hashInit(XMLdata)
 			if err != nil {
 				return nil, err
 			}
@@ -84,13 +86,7 @@ func (r *Rss) Parse() ([]models.Post, error) {
 	}
 	log.Println("Parse hash check", ok, "url:", r.Link)
 	if ok {
-		return nil, err
-	} else {
-		err := r.hashUpdate()
-		if err != nil {
-			return nil, err
-		}
-		log.Println("Hash updated", r.Link)
+		return nil, errors.New("XML file not changed, no new posts")
 	}
 	buffer := bytes.NewBuffer(XMLdata)
 	decoded := xml.NewDecoder(buffer)
@@ -98,12 +94,14 @@ func (r *Rss) Parse() ([]models.Post, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Println("Channel PubDate:", r.Channel.PubDate)
 	var data []models.Post
 	for _, item := range r.Channel.Items {
 		var p models.Post
 		p.Title = item.Title
 		p.Content = item.Description
 		p.Content = strip.StripTags(p.Content)
+		p.Content = strings.ReplaceAll(p.Content, "&rarr;", "")
 		p.Link = item.Link
 		item.PubDate = strings.ReplaceAll(item.PubDate, ",", "")
 		t, err := time.Parse("Mon 2 Jan 2006 15:04:05 -0700", item.PubDate)
@@ -113,13 +111,30 @@ func (r *Rss) Parse() ([]models.Post, error) {
 		if err == nil {
 			p.PubTime = t.Unix()
 		}
-		//log.Println(p)
 		data = append(data, p)
 	}
+	r.Channel.PubDate = strings.ReplaceAll(r.Channel.PubDate, ",", "")
+	t, err := time.Parse("Mon 2 Jan 2006 15:04:05 -0700", r.Channel.PubDate)
+	if err != nil {
+		t, err = time.Parse("Mon 2 Jan 2006 15:04:05 GMT", r.Channel.PubDate)
+	}
+	if err == nil {
+		r.Hash.PubTime = t.Unix()
+	}
+	if r.Hash.PubTime == 0 {
+		r.Hash.PubTime = time.Now().Unix()
+	}
+	err = r.hashUpdate()
+	if err != nil {
+		return nil, err
+	}
+	log.Println("Hash updated", r.Link)
+
 	return data, nil
 }
 
-func (r *Rss) HashInit(data []byte) error {
+//Создаёт первоначальные записи хэшей XML
+func (r *Rss) hashInit(data []byte) error {
 	var err error
 	r.Hash.NewsHash, err = getMd5Hash(data)
 	if err != nil {

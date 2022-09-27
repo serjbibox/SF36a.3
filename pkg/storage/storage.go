@@ -3,32 +3,23 @@ package storage
 import (
 	"context"
 	"errors"
-	"log"
-	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/serjbibox/SF36a.3/pkg/models"
 	"github.com/serjbibox/SF36a.3/pkg/storage/memdb"
 )
 
-var elog = log.New(os.Stderr, "Storage error\t", log.Ldate|log.Ltime|log.Lshortfile)
-var ilog = log.New(os.Stdout, "Storage info\t", log.Ldate|log.Ltime)
-
-//задаёт контракт на работу с таблицей хэшей БД.
+//Интерфейс для работы с таблицей хэшей БД.
 type Hash interface {
 	GetByLink(string) (string, error) // получение хэша по url
-	Create(models.Hash) error         // создание новой публикации
-	Update(models.Hash) error         // обновление публикации
-	Delete(id int) error              // удаление публикации по ID
+	Create(models.Hash) error         // создание новой записи
+	Update(models.Hash) error         // обновление записи
 }
 
-//задаёт контракт на работу с таблицей публикаций БД.
+//Интерфейс для работы с таблицей публикаций БД.
 type Post interface {
-	GetAll() ([]models.Post, error)             // получение всех публикаций
 	GetByQuantity(n int) ([]models.Post, error) // получение публикаций по заданному количеству
 	Create([]models.Post) error                 // создание новой публикации
-	Update(models.Post) error                   // обновление публикации
-	Delete(id string) error                     // удаление публикации по ID
 }
 
 // Хранилище данных.
@@ -40,11 +31,9 @@ type Storage struct {
 // Конструктор объекта хранилища для БД PostgreSQL.
 func NewStoragePostgres(ctx context.Context, db *pgxpool.Pool) (*Storage, error) {
 	if ctx == nil {
-		elog.Println("context is nil")
 		return nil, errors.New("context is nil")
 	}
 	if db == nil {
-		elog.Println("db is nil")
 		return nil, errors.New("db is nil")
 	}
 	return &Storage{
@@ -56,7 +45,6 @@ func NewStoragePostgres(ctx context.Context, db *pgxpool.Pool) (*Storage, error)
 // Конструктор объекта хранилища для БД MemDb.
 func NewStorageMemDb(db memdb.DB) (*Storage, error) {
 	if db == nil {
-		elog.Println("db is nil")
 		return nil, errors.New("db is nil")
 	}
 	return &Storage{

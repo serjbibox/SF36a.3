@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+//Возвращает MD5 хэш массива byte
 func getMd5Hash(data []byte) (string, error) {
 	hasher := md5.New()
 	_, err := hasher.Write(data)
@@ -17,6 +18,7 @@ func getMd5Hash(data []byte) (string, error) {
 	return hex.EncodeToString(hasher.Sum(nil)), nil
 }
 
+//Функция чтения XML файла по ссылке
 func readRssBody(l string) ([]byte, error) {
 	response, err := http.Get(l)
 	if err != nil {
@@ -31,6 +33,7 @@ func readRssBody(l string) ([]byte, error) {
 	return XMLdata, nil
 }
 
+//Обновляет записи хэшей в БД
 func (r *Rss) hashUpdate() error {
 	err := r.Storage.Hash.Update(r.Hash)
 	if err != nil {
@@ -38,6 +41,8 @@ func (r *Rss) hashUpdate() error {
 	}
 	return nil
 }
+
+//Сравнивает хэш, сохранённый в БД с текущим
 func (r *Rss) isHashEqual(data []byte) (bool, error) {
 	storedHash, err := r.Storage.Hash.GetByLink(r.Link)
 	if err != nil {

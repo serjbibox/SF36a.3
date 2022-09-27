@@ -2,7 +2,6 @@ package storage
 
 import (
 	"errors"
-	"strconv"
 
 	"github.com/serjbibox/SF36a.3/pkg/models"
 	"github.com/serjbibox/SF36a.3/pkg/storage/memdb"
@@ -16,11 +15,6 @@ type PostMemdb struct {
 //Конструктор PostMemdb
 func newPostMemDb(db memdb.DB) Post {
 	return &PostMemdb{db: db}
-}
-
-// получение всех публикаций
-func (s *PostMemdb) GetAll() ([]models.Post, error) {
-	return s.db, nil
 }
 
 // Получение публикаций по заданному количеству
@@ -38,6 +32,7 @@ func (s *PostMemdb) GetByQuantity(n int) ([]models.Post, error) {
 
 // создание новой публикации
 func (s *PostMemdb) Create(p []models.Post) error {
+	s.db = append(s.db, p...)
 	return nil
 }
 
@@ -48,18 +43,5 @@ func (s *PostMemdb) Update(p models.Post) error {
 		return errors.New("wrong post id")
 	}
 	s.db[id-1] = p
-	return nil
-}
-
-// удаление публикации по ID
-func (s *PostMemdb) Delete(id string) error {
-	delId, err := strconv.Atoi(id)
-	if err != nil {
-		return err
-	}
-	if delId >= len(s.db) || delId == 0 {
-		return errors.New("wrong post id")
-	}
-	s.db[delId-1] = models.Post{}
 	return nil
 }

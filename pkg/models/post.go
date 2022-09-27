@@ -11,8 +11,8 @@ type Post struct {
 
 // Хэш RSS.
 type Hash struct {
-	ID       int
-	NewsHash string
-	PubTime  int64
-	Link     string
+	ID       int    //id хэша
+	NewsHash string //хэш XML файла новостей
+	PubTime  int64  //время создания файла
+	Link     string //ссылка на XML файл
 }
