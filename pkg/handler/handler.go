@@ -40,11 +40,11 @@ func (h *Handler) getNews(c *gin.Context) {
 		return
 	}
 	posts, err := h.storage.Post.GetByQuantity(n)
-	c.Header("Content-Type", "application/json")
-	c.Header("Access-Control-Allow-Origin", "*")
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	c.Header("Content-Type", "application/json")
+	c.Header("Access-Control-Allow-Origin", "*")
 	c.JSON(http.StatusOK, posts)
 }

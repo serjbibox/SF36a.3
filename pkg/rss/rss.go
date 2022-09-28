@@ -41,7 +41,6 @@ func New(s *storage.Storage, link string) (*Rss, error) {
 	if s == nil {
 		return nil, errors.New("storage is nil")
 	}
-
 	return &Rss{
 		Storage: s,
 		Link:    link,
@@ -54,43 +53,59 @@ func New(s *storage.Storage, link string) (*Rss, error) {
 //Чтение источника и запись в канал
 func (r *Rss) ParseRss(period int, news chan<- []models.Post, errs chan<- error) {
 	for {
-		posts, err := r.parse()
-		switch {
-		case err != nil:
+		XMLdata, err := readRssBody(r.Link)
+		if err != nil {
 			errs <- err
-		default:
-			news <- posts
+			time.Sleep(time.Duration(period) * time.Second)
+			continue
 		}
+
+		ok, err := r.isHashEqual(XMLdata)
+		if err != nil {
+			if strings.Contains(err.Error(), "no rows") {
+				err := r.hashInit(XMLdata)
+				if err != nil {
+					errs <- err
+					time.Sleep(time.Duration(period) * time.Second)
+					continue
+				}
+			} else {
+				errs <- err
+				time.Sleep(time.Duration(period) * time.Second)
+				continue
+			}
+
+		}
+		if ok {
+			errs <- errors.New("XML file not changed, no new posts")
+			time.Sleep(time.Duration(period) * time.Second)
+			continue
+		}
+		log.Println("Parse hash check", ok, "url:", r.Link)
+		posts, err := r.parse(XMLdata)
+		if err != nil {
+			errs <- err
+			time.Sleep(time.Duration(period) * time.Second)
+			continue
+		}
+		err = r.hashUpdate()
+		if err != nil {
+			errs <- err
+			time.Sleep(time.Duration(period) * time.Second)
+			continue
+		}
+		log.Println("Hash updated", r.Link)
+		news <- posts
 		time.Sleep(time.Duration(period) * time.Second)
 	}
 }
 
 // Parse читает rss-поток; возвращет
 // массив раскодированных новостей и ошибку.
-func (r *Rss) parse() ([]models.Post, error) {
-	XMLdata, err := readRssBody(r.Link)
-	if err != nil {
-		return nil, err
-	}
-	ok, err := r.isHashEqual(XMLdata)
-	if err != nil {
-		if strings.Contains(err.Error(), "no rows") {
-			err := r.hashInit(XMLdata)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-
-	}
-	log.Println("Parse hash check", ok, "url:", r.Link)
-	if ok {
-		return nil, errors.New("XML file not changed, no new posts")
-	}
-	buffer := bytes.NewBuffer(XMLdata)
+func (r *Rss) parse(xmlData []byte) ([]models.Post, error) {
+	buffer := bytes.NewBuffer(xmlData)
 	decoded := xml.NewDecoder(buffer)
-	err = decoded.Decode(r)
+	err := decoded.Decode(r)
 	if err != nil {
 		return nil, err
 	}
@@ -124,12 +139,6 @@ func (r *Rss) parse() ([]models.Post, error) {
 	if r.Hash.PubTime == 0 {
 		r.Hash.PubTime = time.Now().Unix()
 	}
-	err = r.hashUpdate()
-	if err != nil {
-		return nil, err
-	}
-	log.Println("Hash updated", r.Link)
-
 	return data, nil
 }
 

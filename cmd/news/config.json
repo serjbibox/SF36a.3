@@ -7,10 +7,10 @@
    "request_period": 10,
    "postgres_settings":{
       "username": "serj",
-      "host": "192.168.52.129",
+      "host": "127.0.0.1",
       "port": "5432",
       "dbname": "gonews",
-      "sslmode": "require",
+      "sslmode": "disable",
       "envname": "DbPass"
    }
 }

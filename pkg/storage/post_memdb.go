@@ -22,6 +22,9 @@ func (s *PostMemdb) GetByQuantity(n int) ([]models.Post, error) {
 	if n >= len(s.db) {
 		return s.db, nil
 	}
+	if n < 0 {
+		return nil, errors.New("n is not positive value")
+	}
 	id := len(s.db) - n
 	out := make([]models.Post, 0)
 
@@ -33,15 +36,5 @@ func (s *PostMemdb) GetByQuantity(n int) ([]models.Post, error) {
 // создание новой публикации
 func (s *PostMemdb) Create(p []models.Post) error {
 	s.db = append(s.db, p...)
-	return nil
-}
-
-// обновление публикации
-func (s *PostMemdb) Update(p models.Post) error {
-	id := p.ID
-	if id >= len(s.db) || id == 0 {
-		return errors.New("wrong post id")
-	}
-	s.db[id-1] = p
 	return nil
 }
