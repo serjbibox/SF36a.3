@@ -57,9 +57,9 @@ services:
     networks:
       - postgres
   gonews:
+    container_name: news_container
     build:
       context: .
-    image: gonews
     restart: unless-stopped
     environment:
       - DbPass='123456'
