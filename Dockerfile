@@ -4,7 +4,8 @@ WORKDIR /go/src/gonews
 COPY ./ ./
 RUN go env -w GO111MODULE=auto 
 RUN go install ./cmd/news
-RUN cp ./cmd/news/config.json ./go/bin
+WORKDIR /
+RUN cp go/src/gonews/cmd/news/config.json go/bin
 
 
 FROM alpine:latest
