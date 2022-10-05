@@ -3,7 +3,7 @@ RUN mkdir -p go/src/gonews
 WORKDIR /go/src/gonews
 COPY ./ ./
 RUN go env -w GO111MODULE=auto 
-RUN go install .
+RUN go install ./cmd/news
 
 FROM alpine:latest
 WORKDIR /
