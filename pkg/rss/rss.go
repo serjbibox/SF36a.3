@@ -56,7 +56,7 @@ func (r *Rss) ParseRss(period int, news chan<- []models.Post, errs chan<- error)
 		XMLdata, err := readRssBody(r.Link)
 		if err != nil {
 			errs <- err
-			time.Sleep(time.Duration(period) * time.Second)
+			time.Sleep(time.Duration(period) * time.Minute)
 			continue
 		}
 
@@ -66,37 +66,37 @@ func (r *Rss) ParseRss(period int, news chan<- []models.Post, errs chan<- error)
 				err := r.hashInit(XMLdata)
 				if err != nil {
 					errs <- err
-					time.Sleep(time.Duration(period) * time.Second)
+					time.Sleep(time.Duration(period) * time.Minute)
 					continue
 				}
 			} else {
 				errs <- err
-				time.Sleep(time.Duration(period) * time.Second)
+				time.Sleep(time.Duration(period) * time.Minute)
 				continue
 			}
 
 		}
 		if ok {
 			errs <- errors.New("XML file not changed, no new posts")
-			time.Sleep(time.Duration(period) * time.Second)
+			time.Sleep(time.Duration(period) * time.Minute)
 			continue
 		}
 		log.Println("Parse hash check", ok, "url:", r.Link)
 		posts, err := r.parse(XMLdata)
 		if err != nil {
 			errs <- err
-			time.Sleep(time.Duration(period) * time.Second)
+			time.Sleep(time.Duration(period) * time.Minute)
 			continue
 		}
 		err = r.hashUpdate()
 		if err != nil {
 			errs <- err
-			time.Sleep(time.Duration(period) * time.Second)
+			time.Sleep(time.Duration(period) * time.Minute)
 			continue
 		}
 		log.Println("Hash updated", r.Link)
 		news <- posts
-		time.Sleep(time.Duration(period) * time.Second)
+		time.Sleep(time.Duration(period) * time.Minute)
 	}
 }
 

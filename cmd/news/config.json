@@ -4,7 +4,7 @@
       "https://forum.golangbridge.org/latest.rss",
       "https://habr.com/ru/rss/best/daily/?fl=ru"
    ],
-   "request_period": 10,
+   "request_period": 1,
    "postgres_settings":{
       "username": "serj",
       "host": "127.0.0.1",
