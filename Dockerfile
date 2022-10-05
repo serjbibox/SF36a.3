@@ -9,4 +9,4 @@ FROM alpine:latest
 WORKDIR /
 COPY --from=build_stage /go/bin .
 RUN apk add libc6-compat
-ENTRYPOINT ./SF36a.3
+##ENTRYPOINT ./SF36a.3
