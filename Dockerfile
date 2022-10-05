@@ -15,3 +15,4 @@ WORKDIR /gonews
 COPY --from=build_stage /go/bin .
 RUN apk add libc6-compat
 ENTRYPOINT ./news
+EXPOSE 80
