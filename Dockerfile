@@ -14,4 +14,4 @@ RUN mkdir -p gonews
 WORKDIR /gonews
 COPY --from=build_stage /go/bin .
 RUN apk add libc6-compat
-##ENTRYPOINT ./news
+ENTRYPOINT ./news
