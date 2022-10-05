@@ -27,7 +27,7 @@ func New(storage *storage.Storage) (*Handler, error) {
 //Регистрация обработчиков запросов
 func (h *Handler) InitRoutes() *gin.Engine {
 	r := gin.Default()
-	r.Use(static.Serve("/", static.LocalFile("./cmd/news/webapp", true)))
+	r.Use(static.Serve("/", static.LocalFile("./webapp", true)))
 	r.GET("/news/:n", h.getNews)
 	return r
 }
