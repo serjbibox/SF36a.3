@@ -56,6 +56,19 @@ services:
           memory: 4G
     networks:
       - postgres
+  gonews:
+    build:
+      context: .
+    image: gonews
+    restart: unless-stopped
+    environment:
+      - DbPass='123456'
+    ports:
+      - 80:8080
+    depends_on:
+      - postgres   
+    networks:
+      - postgres       
 networks:
   postgres:
     driver: bridge      

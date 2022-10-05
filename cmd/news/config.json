@@ -6,10 +6,10 @@
    ],
    "request_period": 1,
    "postgres_settings":{
-      "username": "serj",
-      "host": "192.168.0.109",
-      "port": "5432",
-      "dbname": "gonews",
+      "username": "serj1",
+      "host": "0.0.0.0",
+      "port": "5438",
+      "dbname": "gonews1",
       "sslmode": "disable",
       "envname": "DbPass"
    }
