@@ -67,7 +67,7 @@
                     },
                     mounted:function()
                     {
-                        var e=this,t="http://"+window.location.hostname+":8080/news/40";
+                        var e=this,t="http://"+window.location.hostname+"/news/40";
                         fetch(t).then((function(e){return e.json()})).then((function(t){return e.news=t}))
                     }}),l=c,s=n("2877"),f=n("6544"),p=n.n(f),d=n("b0af"),v=n("99d9"),b=Object(s["a"])(l,u,i,!1,null,"4d65d0c8",null),
                         h=b.exports;p()(b,{VCard:d["a"],VCardSubtitle:v["a"],VCardText:v["b"],VCardTitle:v["c"]});
