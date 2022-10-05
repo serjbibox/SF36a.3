@@ -24,7 +24,7 @@ type config struct {
 var ctx = context.Background()
 
 func main() {
-	c, err := readConfig("./cmd/news/config.json")
+	c, err := readConfig("./config.json")
 	if err != nil {
 		log.Fatal(err)
 	}
