@@ -29,6 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 	connString, err := postgresql.GetConnectionString(c.PostgresConfig)
+	log.Println("Connection String is:", connString)
 	if err != nil {
 		log.Fatal(err)
 	}
