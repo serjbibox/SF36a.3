@@ -14,7 +14,7 @@ import (
 
 func TestPostPostgres_GetByQuantity(t *testing.T) {
 	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj:" + pwd + "@localhost:5432/gonews?sslmode=disable"
+	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
 	db, err := postgresql.New(connString)
 	if err != nil {
 		t.Fatal(err)
@@ -55,7 +55,7 @@ func TestPostPostgres_GetByQuantity(t *testing.T) {
 
 func TestPostPostgres_Create(t *testing.T) {
 	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj:" + pwd + "@localhost:5432/gonews?sslmode=disable"
+	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
 	db, err := postgresql.New(connString)
 	if err != nil {
 		t.Fatal(err)

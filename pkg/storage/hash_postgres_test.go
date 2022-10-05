@@ -14,7 +14,7 @@ import (
 
 func TestHashPostgres_GetByLink(t *testing.T) {
 	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj:" + pwd + "@localhost:5432/gonews?sslmode=disable"
+	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
 	db, err := postgresql.New(connString)
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +61,7 @@ func TestHashPostgres_GetByLink(t *testing.T) {
 func TestHashPostgres_Create(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj:" + pwd + "@localhost:5432/gonews?sslmode=disable"
+	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
 	db, err := postgresql.New(connString)
 	if err != nil {
 		t.Fatal(err)
@@ -110,7 +110,7 @@ func TestHashPostgres_Create(t *testing.T) {
 func TestHashPostgres_Update(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj:" + pwd + "@localhost:5432/gonews?sslmode=disable"
+	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
 	db, err := postgresql.New(connString)
 	if err != nil {
 		t.Fatal(err)
