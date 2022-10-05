@@ -34,8 +34,8 @@ services:
       - "-c"
       - "pg_stat_statements.track=all"
     environment:
-      POSTGRES_DB: "gonews"
-      POSTGRES_USER: "serj"
+      POSTGRES_DB: "gonews1"
+      POSTGRES_USER: "serj1"
       POSTGRES_PASSWORD: "123456"
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
