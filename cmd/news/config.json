@@ -10,7 +10,7 @@
       "host": "db",
       "port": "5432",
       "dbname": "gonews1",
-      "sslmode": "disable",
+      "sslmode": "require",
       "envname": "DbPass"
    }
 }
