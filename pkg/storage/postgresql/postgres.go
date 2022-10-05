@@ -9,14 +9,6 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-const (
-	DB_USERNAME = "serj"
-	DB_HOST     = "192.168.52.129"
-	DB_PORT     = "5432"
-	DB_NAME     = "gonews"
-	DB_SSLMODE  = "require"
-)
-
 var elog = log.New(os.Stderr, "postgresql error\t", log.Ldate|log.Ltime|log.Lshortfile)
 var ilog = log.New(os.Stdout, "postgresql info\t", log.Ldate|log.Ltime)
 
