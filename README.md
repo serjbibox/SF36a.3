@@ -8,14 +8,14 @@
 
 # Запуск приложения (docker-compose):  
 - сборка и запуск:  
-    + docker-compose down -v --remove-orphans  
-    + docker-compose pull  
-    + docker-compose build --pull  
-    + docker-compose up -d  
+    + docker-compose -f docker-compose.yml down -v --remove-orphans  
+    + docker-compose -f docker-compose.yml pull  
+    + docker-compose -f docker-compose.yml build --pull  
+    + docker-compose -f docker-compose.yml up -d  
 - остановка:  
-    + docker-compose down  
+    + docker-compose -f docker-compose.yml down  
 - перезапуск: 
-    + docker-compose up -d  
+    + docker-compose -f docker-compose.yml up -d  
 
 # WEB интерфейс: 
 - http://localhost или http://{удаленный ip}    
