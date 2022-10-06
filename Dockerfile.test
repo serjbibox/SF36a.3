@@ -1,0 +1,6 @@
+FROM golang:latest AS build_stage
+RUN mkdir -p go/src/gonews
+WORKDIR /go/src/gonews
+COPY ./ ./
+# Run tests
+CMD CGO_ENABLED=0 go test ./...

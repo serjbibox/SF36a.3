@@ -17,3 +17,13 @@ stop:
 	docker-compose down
 run:
 	docker-compose up -d	
+
+test:
+	docker-compose -f docker-compose_test.yml up --build --abort-on-container-exit
+	docker-compose -f docker-compose_test.yml down --volumes
+
+test-db-up:
+	docker-compose -f docker-compose_test.yml up --build db
+
+test-db-down:
+	docker-compose -f docker-compose_test.yml down --volumes db

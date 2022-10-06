@@ -2,24 +2,15 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
-	"os"
 	"strconv"
 	"testing"
 
 	"github.com/serjbibox/SF36a.3/pkg/models"
-	"github.com/serjbibox/SF36a.3/pkg/storage/postgresql"
 )
 
 func TestPostPostgres_GetByQuantity(t *testing.T) {
-	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
-	db, err := postgresql.New(connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-	s := newPostPostgres(context.Background(), db)
+	s := newPostPostgres(context.Background(), testDb)
 	type args struct {
 		n int
 	}
@@ -48,23 +39,15 @@ func TestPostPostgres_GetByQuantity(t *testing.T) {
 			if tt.want != (len(got) > 0) {
 				t.Errorf("PostPostgres.GetByQuantity() = %v, want %v", got, tt.want)
 			}
-			fmt.Println("len of got", len(got))
 		})
 	}
 }
 
 func TestPostPostgres_Create(t *testing.T) {
-	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
-	db, err := postgresql.New(connString)
+	s, err := NewStoragePostgres(context.Background(), testDb)
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := NewStoragePostgres(context.Background(), db)
-	if err != nil {
-		t.Fatal(err)
-	}
-	//s := newPostPostgres(context.Background(), db)
 	type args struct {
 		p []models.Post
 	}

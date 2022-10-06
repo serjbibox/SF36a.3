@@ -2,24 +2,42 @@ package storage
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/serjbibox/SF36a.3/pkg/models"
 	"github.com/serjbibox/SF36a.3/pkg/storage/postgresql"
 )
 
-func TestHashPostgres_GetByLink(t *testing.T) {
-	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
-	db, err := postgresql.New(connString)
+var testDb *pgxpool.Pool
+
+var testConnString = "postgres://news_service:qwerty@db_postgres:5432/testdb?sslmode=disable"
+
+//var testConnString = "postgres://serj:123456@192.168.0.109:5432/gonews?sslmode=disable"
+
+func TestMain(m *testing.M) {
+	// Write code here to run before tests
+	var err error
+	testDb, err = postgresql.New(testConnString)
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
-	s := newHashPostgres(context.Background(), db)
+	// Run tests
+	exitVal := m.Run()
+
+	// Write code here to run after tests
+
+	// Exit with exit value from tests
+	os.Exit(exitVal)
+}
+
+func TestHashPostgres_GetByLink(t *testing.T) {
+	s := newHashPostgres(context.Background(), testDb)
 	type args struct {
 		l string
 	}
@@ -33,8 +51,8 @@ func TestHashPostgres_GetByLink(t *testing.T) {
 		{
 			name: "test 1",
 			s:    s,
-			args: args{l: "https://habr.com/ru/rss/best/daily/?fl=ru"},
-			want: "a80dcaf55478ae250d53ec6ac01eb562",
+			args: args{l: "test link 1"},
+			want: "testhash1",
 		},
 		{
 			name:    "test 2",
@@ -60,13 +78,7 @@ func TestHashPostgres_GetByLink(t *testing.T) {
 
 func TestHashPostgres_Create(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
-	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
-	db, err := postgresql.New(connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-	s := newHashPostgres(context.Background(), db)
+	s := newHashPostgres(context.Background(), testDb)
 	type args struct {
 		h models.Hash
 	}
@@ -91,8 +103,8 @@ func TestHashPostgres_Create(t *testing.T) {
 			s:    s,
 			args: args{
 				h: models.Hash{
-					Link:     "https://blog.jetbrains.com/go/feed/",
-					NewsHash: "9c2964fa7f5d51cc7ff462fba140624d",
+					Link:     "test link 1",
+					NewsHash: "testhash1",
 				},
 			},
 			wantErr: true,
@@ -109,13 +121,7 @@ func TestHashPostgres_Create(t *testing.T) {
 
 func TestHashPostgres_Update(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
-	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj1:" + pwd + "@0.0.0.0:5438/gonews1?sslmode=disable"
-	db, err := postgresql.New(connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-	s := newHashPostgres(context.Background(), db)
+	s := newHashPostgres(context.Background(), testDb)
 	type args struct {
 		h models.Hash
 	}
@@ -130,8 +136,8 @@ func TestHashPostgres_Update(t *testing.T) {
 			s:    s,
 			args: args{
 				h: models.Hash{
-					Link:     "https://blog.jetbrains.com/go/feed/",
-					NewsHash: "newhash",
+					Link:     "test link 2",
+					NewsHash: "testhash2",
 				},
 			},
 			wantErr: false,
@@ -142,7 +148,7 @@ func TestHashPostgres_Update(t *testing.T) {
 			args: args{
 				h: models.Hash{
 					Link:     "?",
-					NewsHash: "newhash",
+					NewsHash: "testhash2",
 				},
 			},
 			wantErr: true,
