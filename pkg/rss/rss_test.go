@@ -3,32 +3,40 @@ package rss
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 	"testing"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/serjbibox/SF36a.3/pkg/models"
 	"github.com/serjbibox/SF36a.3/pkg/storage"
 	"github.com/serjbibox/SF36a.3/pkg/storage/postgresql"
 )
 
-func TestRss_parse(t *testing.T) {
-	/*c := &config{
-		Resurses: []string{
-			"https://blog.jetbrains.com/go/feed/",
-			"https://forum.golangbridge.org/latest.rss",
-			"https://habr.com/ru/rss/best/daily/?fl=ru",
-		},
-		Period:         5,
-		PostgresConfig: postgresql.PostgresConfig{},
-	}*/
-	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj:" + pwd + "@localhost:5432/gonews?sslmode=disable"
-	db, err := postgresql.New(connString)
+var testDb *pgxpool.Pool
+var testConnString = "postgres://serj:123456@192.168.0.109:5432/gonews?sslmode=disable"
+
+//var testConnString = "postgres://news_service:qwerty@db_postgres:5432/testdb?sslmode=disable"
+
+func TestMain(m *testing.M) {
+	// Write code here to run before tests
+	var err error
+	testDb, err = postgresql.New(testConnString)
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
-	s, err := storage.NewStoragePostgres(context.Background(), db)
+	// Run tests
+	exitVal := m.Run()
+
+	// Write code here to run after tests
+
+	// Exit with exit value from tests
+	os.Exit(exitVal)
+}
+
+func TestRss_parse(t *testing.T) {
+	s, err := storage.NewStoragePostgres(context.Background(), testDb)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,14 +95,7 @@ func TestRss_parse(t *testing.T) {
 }
 
 func TestRss_ParseRss(t *testing.T) {
-
-	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj:" + pwd + "@localhost:5432/gonews?sslmode=disable"
-	db, err := postgresql.New(connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-	s, err := storage.NewStoragePostgres(context.Background(), db)
+	s, err := storage.NewStoragePostgres(context.Background(), testDb)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,14 +154,7 @@ func TestRss_ParseRss(t *testing.T) {
 }
 
 func TestRss_hashInit(t *testing.T) {
-
-	pwd := os.Getenv("DbPass")
-	connString := "postgres://serj:" + pwd + "@localhost:5432/gonews?sslmode=disable"
-	db, err := postgresql.New(connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-	s, err := storage.NewStoragePostgres(context.Background(), db)
+	s, err := storage.NewStoragePostgres(context.Background(), testDb)
 	if err != nil {
 		t.Fatal(err)
 	}
