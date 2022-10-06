@@ -9,6 +9,11 @@ docker-pull:
 	
 docker-build:
 	docker-compose build --pull
-	
+
 docker-up:
 	docker-compose up -d
+
+stop:
+	docker-compose down
+run:
+	docker-compose up -d	
