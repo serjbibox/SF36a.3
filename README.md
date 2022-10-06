@@ -1,3 +1,19 @@
+# Запуск приложения (makefile):  
+- сборка и запуск: make init,  
+- остановка: make stop,  
+- перезапуск: make run.  
+
+# Запуск приложения (docker-compose):  
+- сборка и запуск:  
+    + docker-compose down -v --remove-orphans  
+    + docker-compose pull  
+    + docker-compose build --pull  
+    + docker-compose up -d  
+- остановка:  
+    + docker-compose down  
+- перезапуск: 
+    + docker-compose up -d  
+
 # Требования:  
 [x] 1	Приложение должно иметь веб-интерфейс с отображением десяти последних по времени публикаций.  
 [x] 2	Приложение должно принимать на вход конфигурационный файл в формате JSON с массивом ссылок на RSS-ленты информационных сайтов и периодом опроса в минутах.  
