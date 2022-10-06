@@ -7,8 +7,8 @@
    "request_period": 1,
    "postgres_settings":{
       "username": "news_service",
-      "host": "db",
-      "port": "5436",
+      "host": "db_postgres",
+      "port": "5438",
       "dbname": "gonews",
       "sslmode": "disable",
       "envname": "DbPwd"
