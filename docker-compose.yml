@@ -34,16 +34,16 @@ services:
       - "-c"
       - "pg_stat_statements.track=all"
     environment:
-      POSTGRES_DB: "gonews1"
-      POSTGRES_USER: "serj1"
-      POSTGRES_PASSWORD: "123456"
+      POSTGRES_DB: "gonews"
+      POSTGRES_USER: "news_service"
+      POSTGRES_PASSWORD: "qwerty"
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
       - .:/docker-entrypoint-initdb.d
     ports:
-      - "5438:5432"
+      - "5436:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U serj1 -d gonews1"]
+      test: ["CMD-SHELL", "pg_isready -U news_service -d gonews"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,15 +55,17 @@ services:
           cpus: '1'
           memory: 4G
   gonews:
+    depends_on:
+      - db  
+    condition: service_healthy
     container_name: news_container
     build:
       context: .
     restart: unless-stopped
     environment:
-      - DbPass=123456
+      - DbPwd=qwerty
     ports:
       - 80:8080
-    depends_on:
-      - db   
+ 
     
      

@@ -6,11 +6,11 @@
    ],
    "request_period": 1,
    "postgres_settings":{
-      "username": "serj1",
+      "username": "news_service",
       "host": "db",
-      "port": "5432",
-      "dbname": "gonews1",
+      "port": "5436",
+      "dbname": "gonews",
       "sslmode": "disable",
-      "envname": "DbPass"
+      "envname": "DbPwd"
    }
 }
